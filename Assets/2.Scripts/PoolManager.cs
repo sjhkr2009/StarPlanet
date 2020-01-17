@@ -76,30 +76,35 @@ public class PoolManager : MonoBehaviour
         _gameObject.transform.rotation = rot;
     }
 
-    public T Spawn<T>(ObjectPool type, Vector3 position, Quaternion rotation) where T : Component
+    public Component Spawn(ObjectPool type, Vector3 position, Quaternion rotation)
     {
+        Component _returnObject = null;
 
         switch (type)
         {
             case ObjectPool.EnemyTP1:
                 SpawnObject(enemyTP1List, enemyTP1Index, position, rotation);
+                _returnObject = enemyTP1List[enemyTP1Index];
                 enemyTP1Index = (enemyTP1Index + 1) % poolNumber;
                 break;
             case ObjectPool.EnemyTS1:
                 SpawnObject(enemyTS1List, enemyTS1Index, position, rotation);
+                _returnObject = enemyTS1List[enemyTS1Index];
                 enemyTS1Index = (enemyTS1Index + 1) % poolNumber;
                 break;
             case ObjectPool.ParticleTP1:
                 SpawnObject(particleTP1List, particleTP1Index, position, rotation);
+                _returnObject = particleTP1List[particleTP1Index];
                 particleTP1Index = (particleTP1Index + 1) % poolNumber;
                 break;
             case ObjectPool.ParticleTS1:
                 SpawnObject(particleTS1List, particleTS1Index, position, rotation);
+                _returnObject = particleTS1List[particleTS1Index];
                 particleTS1Index = (particleTS1Index + 1) % poolNumber;
                 break;
             default:
                 return null;
         }
-        return enemyTP1List[0]; //반환 테스트용. 나중에 타입에 맞는 컴포넌트로 반환하도록 변경할 예정.
+        return _returnObject;
     }
 }
