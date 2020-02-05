@@ -9623,6 +9623,36 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &263039180
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 263039181}
+  m_Layer: 0
+  m_Name: ItemHexagonBomb
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &263039181
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263039180}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1725615180}
+  m_RootOrder: 9
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &349245463
 GameObject:
   m_ObjectHideFlags: 0
@@ -14783,6 +14813,36 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
+--- !u!1 &860365596
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 860365597}
+  m_Layer: 0
+  m_Name: ParticleExp
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &860365597
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 860365596}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1725615180}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &909382096
 GameObject:
   m_ObjectHideFlags: 0
@@ -25100,6 +25160,36 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1477996668}
   m_CullTransparentMesh: 0
+--- !u!1 &1505062853
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1505062854}
+  m_Layer: 0
+  m_Name: ParticleHexagonExp
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1505062854
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505062853}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1725615180}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1523573206
 GameObject:
   m_ObjectHideFlags: 0
@@ -30049,6 +30139,10 @@ Transform:
   - {fileID: 1245893225}
   - {fileID: 960554001}
   - {fileID: 450326991}
+  - {fileID: 860365597}
+  - {fileID: 1505062854}
+  - {fileID: 2107501405}
+  - {fileID: 263039181}
   m_Father: {fileID: 0}
   m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -34844,6 +34938,7 @@ GameObject:
   - component: {fileID: 1820830200}
   - component: {fileID: 1820830201}
   - component: {fileID: 1820830202}
+  - component: {fileID: 1820830203}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -34882,14 +34977,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d62ad1abcd99efb4aa3fe1fbf01ae58a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uiManager: {fileID: 1820830195}
+  screenHorizontal: 9
+  screenVertical: 16
   star: {fileID: 1934295236}
   planet: {fileID: 678788599}
+  uiManager: {fileID: 1820830195}
   enemyManager: {fileID: 1820830199}
   soundManager: {fileID: 1820830201}
   scoreManager: {fileID: 1820830202}
   poolManager: {fileID: 1820830198}
   particleManager: {fileID: 1820830200}
+  itemManager: {fileID: 1820830203}
 --- !u!4 &1820830197
 Transform:
   m_ObjectHideFlags: 0
@@ -34924,9 +35022,17 @@ MonoBehaviour:
     type: 3}
   enemyToStar2: {fileID: 2365287343932799306, guid: 3ce2e63ad1e4bf840b9d028b02ea2289,
     type: 3}
+  itemHexagonBomb: {fileID: 8266072259651185375, guid: bfaab80cbff52004ca7ae9692e2b8f7a,
+    type: 3}
+  itemFixedBomb: {fileID: 6164865087453595385, guid: 3225764b6a78a6f428ece07a0423c40e,
+    type: 3}
   particleTP1: {fileID: 7585895747022911170, guid: f652799615f03f64e8543b45a000b6be,
     type: 3}
   particleTS1: {fileID: 5654866782993638891, guid: dfef2ec647b87c44f8709c39bbb7662b,
+    type: 3}
+  particleExplosion: {fileID: 2215045306410215692, guid: b58baf74605987f4ea54389495891f21,
+    type: 3}
+  particleHexagonExp: {fileID: 250986309262521860, guid: 4360047f3e6c48a46902ccdb76a9b65e,
     type: 3}
   audioFX: {fileID: 6667681757803919408, guid: 08e60bab54fbd7a409fae26435dc6122, type: 3}
   audioFXList: []
@@ -34934,8 +35040,12 @@ MonoBehaviour:
   enemyTS1Group: {fileID: 13762275}
   enemyTP2Group: {fileID: 960554001}
   enemyTS2Group: {fileID: 450326991}
+  itemHexagonBombGroup: {fileID: 263039181}
+  itemFixedBombGroup: {fileID: 2107501405}
   particleTP1Group: {fileID: 506022046}
   particleTS1Group: {fileID: 1245893225}
+  particleExplosionGroup: {fileID: 860365597}
+  particleHexagonExpGroup: {fileID: 1505062854}
   audioFXGroup: {fileID: 1294974128}
   poolNumber: 100
 --- !u!114 &1820830199
@@ -34952,10 +35062,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   poolManager: {fileID: 1820830198}
   scoreManager: {fileID: 1820830202}
+  soundManager: {fileID: 1820830201}
+  particleManager: {fileID: 1820830200}
   minSpawnDelay: 1
   maxSpawnDelay: 3
-  screenHorizontal: 9
-  screenVertical: 16
   tier2Probability: 0.2
   tier3Probability: 0
   tier4Probability: 0
@@ -34971,6 +35081,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c8e87eaf47ef8847809ab4a4bc10a85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  poolManager: {fileID: 1820830198}
 --- !u!114 &1820830201
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34985,6 +35096,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   correctCollision: {fileID: 8300000, guid: a688b479dadac0141ab9356f765067ce, type: 3}
   wrongCollision: {fileID: 8300000, guid: 89ee837fbc264d942a29bf8929008497, type: 3}
+  normalBombExplosion: {fileID: 8300000, guid: 64fb9477894fa2e4a997518fbb1c2f15, type: 3}
+  hexagonBombExplosion: {fileID: 8300000, guid: 92d3259b6a9732e4ba3fb95331b2c95d,
+    type: 3}
 --- !u!114 &1820830202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35003,6 +35117,26 @@ MonoBehaviour:
   scoreTier2: 10
   scoreTier3: 30
   scoreTier4: 100
+--- !u!114 &1820830203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1820830194}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a3476c39ab052e4e8a662f0c969cb7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  poolManager: {fileID: 1820830198}
+  soundManager: {fileID: 1820830201}
+  particleManager: {fileID: 1820830200}
+  minDelayOfFixedBomb: 3
+  maxDelayOfFixedBomb: 6
+  minDelayOfHexagonBomb: 5
+  maxDelayOfHexagonBomb: 10
+  planet: {fileID: 678788596}
 --- !u!1 &1896093933
 GameObject:
   m_ObjectHideFlags: 0
@@ -44595,6 +44729,36 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1974825147}
   m_CullTransparentMesh: 0
+--- !u!1 &2107501404
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2107501405}
+  m_Layer: 0
+  m_Name: ItemFixedBomb
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2107501405
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2107501404}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1725615180}
+  m_RootOrder: 8
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2109172374
 GameObject:
   m_ObjectHideFlags: 0
