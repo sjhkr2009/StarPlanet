@@ -29,12 +29,16 @@ public class EnemyManager : MonoBehaviour
         if (particleManager == null) particleManager = GameManager.Instance.ParticleManager;
 
         screenView = GameManager.Instance.screenHorizontal / GameManager.Instance.screenVertical;
+        StartCoroutine(EnemySpawn());
     }
 
     public IEnumerator EnemySpawn()
     {
         while (true)
         {
+            yield return null;
+            if (GameManager.Instance.gameState != GameState.Playing) continue;
+
             float cameraSize = Camera.main.orthographicSize;
 
             float minX = -cameraSize * screenView - 1f;
@@ -108,10 +112,20 @@ public class EnemyManager : MonoBehaviour
         enemy.EventOnExplosion += scoreManager.GetScore;
     }
 
+    void DeleteEventToEnemy(Enemy enemy)
+    {
+        enemy.EventContactCorrect -= OnContactCorrect;
+        enemy.EventContactCorrect -= scoreManager.GetScore;
+
+        enemy.EventContactWrong -= OnContactWrong;
+
+        enemy.EventOnExplosion -= OnExplosion;
+        enemy.EventOnExplosion -= scoreManager.GetScore;
+    }
+
     public void DespawnEnemy(Enemy targetEnemy)
     {
-        targetEnemy.EventContactCorrect -= OnContactCorrect;
-        targetEnemy.EventContactWrong -= OnContactWrong;
+        DeleteEventToEnemy(targetEnemy);
         targetEnemy.gameObject.SetActive(false);
     }
 
@@ -159,5 +173,12 @@ public class EnemyManager : MonoBehaviour
 
         if (isCorrect) soundManager.PlayFXSound(SoundTypeFX.CorrectCol);
         else soundManager.PlayFXSound(SoundTypeFX.WrongCol);
+    }
+
+    public void AllEnemyEventReset()
+    {
+        Enemy[] enemies = FindObjectsOfType<Enemy>();
+        foreach (var enemy in enemies) if (enemy.gameObject.activeSelf) DeleteEventToEnemy(enemy);
+        StopAllCoroutines();
     }
 }

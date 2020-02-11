@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
+using UnityEngine.UI;
 
-public enum SoundTypeFX { CorrectCol, WrongCol, NormalBomb, HexagonBomb, Healing }
+public enum SoundTypeFX { CorrectCol, WrongCol, NormalBomb, HexagonBomb, Healing, Booster }
 
 public class SoundManager : MonoBehaviour
 {
@@ -30,9 +31,9 @@ public class SoundManager : MonoBehaviour
     [BoxGroup("FX")] [SerializeField] AudioClip normalBombExplosion;
     [BoxGroup("FX")] [SerializeField] AudioClip hexagonBombExplosion;
     [BoxGroup("FX")] [SerializeField] AudioClip healing;
+    [BoxGroup("FX")] [SerializeField] AudioClip booster;
 
     List<AudioSource> audioFXPlayers = new List<AudioSource>();
-
 
     private void Start()
     {
@@ -60,6 +61,9 @@ public class SoundManager : MonoBehaviour
             case SoundTypeFX.Healing:
                 audio.PlayOneShot(healing, 0.65f * MasterVolume * FXVolume);
                 break;
+            case SoundTypeFX.Booster:
+                audio.PlayOneShot(booster, 0.3f * MasterVolume * FXVolume);
+                break;
         }
     }
 
@@ -77,4 +81,7 @@ public class SoundManager : MonoBehaviour
         if(!container.gameObject.activeSelf) container.gameObject.SetActive(true);
         return container;
     }
+    public void MasterVolumeChange(Slider volumeSlider) { MasterVolume = volumeSlider.value; } //배경음 재생기의 볼륨 조정 추가하기
+    public void BGMVolumeChange(Slider volumeSlider) { BGMVolume = volumeSlider.value; } //배경음 재생기의 볼륨 조정 추가하기
+    public void FXVolumeChange(Slider volumeSlider) { FXVolume = volumeSlider.value; }
 }
