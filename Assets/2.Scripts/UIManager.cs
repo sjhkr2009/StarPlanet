@@ -25,12 +25,15 @@ public class UIManager : MonoBehaviour
 
     //팝업창 관련 - 공통
     [BoxGroup("Pop-Up Window")] [SerializeField] GameObject allPopUpWindow;
+    [BoxGroup("Pop-Up Window")] [SerializeField] PopUpWindow popUpWindow;
     [BoxGroup("Pop-Up Window")] [SerializeField] Text titleText;
     [BoxGroup("Pop-Up Window")] [SerializeField] Image popUpBackgroundColor;
     [BoxGroup("Pop-Up Window")] [SerializeField] RectTransform popUpBasicTransform;
     [BoxGroup("Pop-Up Window")] [SerializeField] RectTransform gameoverTransform;
     [BoxGroup("Pop-Up Window")] [SerializeField] RectTransform pauseTransform;
     [BoxGroup("Pop-Up Window")] [SerializeField] RectTransform soundTransform;
+    [BoxGroup("Pop-Up Window")] [SerializeField] GameObject warningWindow;
+    [BoxGroup("Pop-Up Window")] [SerializeField] WarningText warningText;
 
     [BoxGroup("Object")] [SerializeField] Star star;
     [BoxGroup("Object")] [SerializeField] Planet planet;
@@ -38,6 +41,8 @@ public class UIManager : MonoBehaviour
     public event Action EventCountDownDone = () => { };
 
     bool isPopUpClosing = false;
+    bool isWarningActive = false;
+
     private NowActive _nowActive;
     public NowActive nowActive
     {
@@ -84,12 +89,18 @@ public class UIManager : MonoBehaviour
     {
         StartCoroutine(CountdownToPlay());
 
+        if(popUpWindow == null) popUpWindow = allPopUpWindow.GetComponent<PopUpWindow>();
+        if (warningText == null) warningText = FindObjectOfType<WarningText>();
+
         star.EventRadiusChange += RadiusChange;
         star.EventHpChanged += OnPlayerHpChanged;
         star.EventMaxHpChanged += OnPlayerMaxHpChanged;
 
         planet.EventHpChanged += OnPlayerHpChanged;
         planet.EventMaxHpChanged += OnPlayerMaxHpChanged;
+
+        popUpWindow.EventOnPopUpOpen += OnPopUp;
+        warningText.EventOnTextEnable += WarningTextSetting;
 
         accelIconActive.SetActive(false);
         allPopUpWindow.SetActive(false);
@@ -108,6 +119,9 @@ public class UIManager : MonoBehaviour
 
         planet.EventHpChanged -= OnPlayerHpChanged;
         planet.EventMaxHpChanged -= OnPlayerMaxHpChanged;
+
+        popUpWindow.EventOnPopUpOpen -= OnPopUp;
+        warningText.EventOnTextEnable -= WarningTextSetting;
     }
 
     void RadiusChange(float radius)
@@ -175,18 +189,25 @@ public class UIManager : MonoBehaviour
             case GameState.Pause:
                 allPopUpWindow.SetActive(true);
                 nowActive = NowActive.Pause;
-                OnPopUpWindowAnimation(pauseTransform);
+                PopUpWindowOnAnimation(pauseTransform);
                 break;
             case GameState.GameOver:
                 allPopUpWindow.SetActive(true);
                 nowActive = NowActive.Gameover;
-                OnPopUpWindowAnimation(gameoverTransform);
+                PopUpWindowOnAnimation(gameoverTransform);
                 break;
         }
     }
 
     public void Escape()
     {
+        if (isWarningActive)
+        {
+            isWarningActive = false;
+            warningWindow.SetActive(false);
+            return;
+        }
+
         switch (nowActive)
         {
             case NowActive.None:
@@ -198,7 +219,7 @@ public class UIManager : MonoBehaviour
                 ButtonSoundToPause();
                 break;
             case NowActive.Gameover:
-                //경고창 띄우기 후 타이틀로
+                OpenWarningWindow();
                 break;
         }
     }
@@ -206,26 +227,25 @@ public class UIManager : MonoBehaviour
     public void ButtonGameoverToTitle()
     {
         if (isPopUpClosing) return;
-        OffWindowAnimation(gameoverTransform);
-        //타이틀로
+        PopUpWindowOffAnimation(gameoverTransform);
+        DOVirtual.DelayedCall(0.2f, GameManager.Instance.LoadTitleScene, true);
     }
     public void ButtonGameoverToRestart()
     {
         if (isPopUpClosing) return;
-        OffWindowAnimation(gameoverTransform);
+        PopUpWindowOffAnimation(gameoverTransform);
         DOVirtual.DelayedCall(0.2f, GameManager.Instance.ReStartScene, true);
     }
     public void ButtonPauseToResume()
     {
         if (isPopUpClosing) return;
-        OffWindowAnimation(pauseTransform);
+        PopUpWindowOffAnimation(pauseTransform);
         DOVirtual.DelayedCall(0.2f, () => { GameManager.Instance.gameState = GameState.Playing; }, true);
     }
     public void ButtonPauseToTitle()
     {
         if (isPopUpClosing) return;
-        OffWindowAnimation(pauseTransform);
-        //경고창 띄우기 후 타이틀로
+        OpenWarningWindow();
     }
 
     public void ButtonPauseToSound()
@@ -238,12 +258,51 @@ public class UIManager : MonoBehaviour
         if (isPopUpClosing) return;
         nowActive = NowActive.Pause;
     }
-
-    void OnPopUpWindowAnimation(RectTransform windowScale)
+    public void ButtonWarningClose()
     {
-        popUpBackgroundColor.color = Color.clear;
-        popUpBackgroundColor.DOColor(new Color(0, 0, 0, 0.5f), 0.5f).SetUpdate(true);
+        if (isPopUpClosing) return;
+        warningWindow.SetActive(false);
+        isWarningActive = false;
+    }
+    public void ButtonWarningToTitle()
+    {
+        if (isPopUpClosing) return;
+        warningWindow.SetActive(false);
+        isWarningActive = false;
 
+        isPopUpClosing = true;
+        if (gameoverTransform.gameObject.activeSelf) gameoverTransform.gameObject.SetActive(false);
+        if (pauseTransform.gameObject.activeSelf) pauseTransform.gameObject.SetActive(false);
+        popUpBasicTransform.DOScale(0f, 0.15f).SetEase(Ease.InBack).SetUpdate(true).OnComplete(OffAllWindow);
+
+        DOVirtual.DelayedCall(0.2f, GameManager.Instance.LoadTitleScene, true);
+    }
+
+    void OpenWarningWindow()
+    {
+        warningWindow.SetActive(true);
+        isWarningActive = true;
+    }
+
+    void OnPopUp() //팝업창을 처음 열 때 공통적으로 처리할 부분. UI를 제외한 게임화면을 50% 검게 처리하고 경고창이 활성화되어 있다면 경고창을 꺼 준다. 
+    {
+        warningWindow.SetActive(false);
+        isWarningActive = false;
+
+        popUpBackgroundColor.color = Color.clear;
+        popUpBackgroundColor.DOColor(new Color(0, 0, 0, 0.5f), 0.3f).SetUpdate(true);
+
+        if (!popUpBasicTransform.gameObject.activeSelf) popUpBasicTransform.gameObject.SetActive(true);
+    }
+
+    void WarningTextSetting(Text text)
+    {
+        if (GameManager.Instance.gameState == GameState.Pause) text.text = "정말 게임을 중단하고 처음 화면으로 돌아갑니까?";
+        else if (GameManager.Instance.gameState == GameState.GameOver) text.text = "처음 화면으로 돌아가시겠습니까?";
+    }
+
+    void PopUpWindowOnAnimation(RectTransform windowScale)
+    {
         popUpBasicTransform.localScale = Vector3.one * 0.5f;
         windowScale.localScale = Vector3.one * 0.5f;
 
@@ -251,13 +310,13 @@ public class UIManager : MonoBehaviour
         windowScale.DOScale(1f, 0.2f).SetEase(Ease.OutBack).SetUpdate(true);
     }
 
-    void OffWindowAnimation(RectTransform windowScale)
+    void PopUpWindowOffAnimation(RectTransform windowScale)
     {
         isPopUpClosing = true;
         windowScale.DOScale(0f, 0.15f).SetEase(Ease.InBack).SetUpdate(true).OnComplete(() => { windowScale.gameObject.SetActive(false); });
         popUpBasicTransform.DOScale(0f, 0.15f).SetEase(Ease.InBack).SetUpdate(true).OnComplete(OffAllWindow);
     }
-    void OffAllWindow()
+    public void OffAllWindow()
     {
         allPopUpWindow.SetActive(false);
         isPopUpClosing = false;
