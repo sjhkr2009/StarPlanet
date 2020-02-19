@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using Sirenix.OdinInspector;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public enum GameState { Ready, Playing, Pause, GameOver }
 
@@ -34,7 +35,7 @@ public class GameManager : MonoBehaviour
             {
                 case GameState.Ready:
                     _gameState = GameState.Ready;
-                    Time.timeScale = 1f;
+                    Time.timeScale = 0f;
                     break;
                 case GameState.Playing:
                     _gameState = GameState.Playing;
@@ -64,20 +65,24 @@ public class GameManager : MonoBehaviour
     [BoxGroup("Scripts")] [SerializeField] PoolManager poolManager;     public PoolManager PoolManager => poolManager;
     [BoxGroup("Scripts")] [SerializeField] ParticleManager particleManager; public ParticleManager ParticleManager => particleManager;
     [BoxGroup("Scripts")] [SerializeField] ItemManager itemManager;     public ItemManager ItemManager => itemManager;
+    [BoxGroup("Scripts")] [SerializeField] FeverManager feverManager;   public FeverManager FeverManager => feverManager;
+    [BoxGroup("Scripts")] [SerializeField] TimeManager timeManager;     public TimeManager TimeManager => timeManager;
 
     Vector3 mousePos;
-    public event Action<Vector3> EventOnClick;
+    public event Action<Vector3> EventOnTouchScreen = n => { };
 
     private void Awake()
     {
         _instance = this;
-        gameState = GameState.Ready;
-        if(uiManager == null) uiManager = GetComponent<UIManager>();
+
+        if (uiManager == null) uiManager = GetComponent<UIManager>();
         if (enemyManager == null) enemyManager = GetComponent<EnemyManager>();
         if (soundManager == null) soundManager = GetComponent<SoundManager>();
         if (scoreManager == null) scoreManager = GetComponent<ScoreManager>();
         if (poolManager == null) poolManager = GetComponent<PoolManager>();
         if (particleManager == null) particleManager = GetComponent<ParticleManager>();
+        if (feverManager == null) feverManager = GetComponent<FeverManager>();
+        if (timeManager == null) timeManager = GetComponent<TimeManager>();
         if (star == null) star = FindObjectOfType<Star>();
         if (planet == null) planet = FindObjectOfType<Planet>();
 
@@ -87,12 +92,33 @@ public class GameManager : MonoBehaviour
         planet.EventHpChanged += OnPlayerHpChanged;
         planet.EventPlayerDead += OnPlayerDead;
 
+        EventOnTouchScreen += star.TargetRadiusChange;
+
         EventGameStateChanged += star.OnGameStateChanged;
         EventGameStateChanged += uiManager.OnGameStateChanged;
-
-        uiManager.EventCountDownDone += OnCountDownDone;
+        EventGameStateChanged += timeManager.OnGameStateChanged;
 
         scoreManager.EventOnScoreChanged += uiManager.ScoreTextChange;
+        scoreManager.EventOnGameOver += uiManager.OnGameOverScorePrint;
+
+        feverManager.EventOnGetFeverGauge += uiManager.FeverGaugeFill;
+        feverManager.EventOnFeverTime += uiManager.OnFeverTime;
+        feverManager.EventOnFeverTime += star.OnFeverTime;
+        feverManager.EventExitFeverTime += star.ExitFeverTime;
+        feverManager.EventExitFeverTime += uiManager.FeverGaugeReset;
+
+        timeManager.EventPerOneSecond += feverManager.GetFeverCountPerSecond;
+
+
+        gameState = GameState.Ready;
+        DOVirtual.DelayedCall(4f, () =>
+        {
+            if (gameState == GameState.Ready)
+            {
+                gameState = GameState.Playing;
+                Debug.Log("강제 시작");
+            }
+        });
     }
 
     void Start()
@@ -109,19 +135,26 @@ public class GameManager : MonoBehaviour
         planet.EventHpChanged -= OnPlayerHpChanged;
         planet.EventPlayerDead -= OnPlayerDead;
 
+        EventOnTouchScreen -= star.TargetRadiusChange;
+
         EventGameStateChanged -= star.OnGameStateChanged;
         EventGameStateChanged -= uiManager.OnGameStateChanged;
-
-        uiManager.EventCountDownDone -= OnCountDownDone;
+        EventGameStateChanged -= timeManager.OnGameStateChanged;
 
         scoreManager.EventOnScoreChanged -= uiManager.ScoreTextChange;
+        scoreManager.EventOnGameOver -= uiManager.OnGameOverScorePrint;
+
+        feverManager.EventOnGetFeverGauge -= uiManager.FeverGaugeFill;
+        feverManager.EventOnFeverTime -= uiManager.OnFeverTime;
+        feverManager.EventOnFeverTime -= star.OnFeverTime;
+        feverManager.EventExitFeverTime -= star.ExitFeverTime;
+        feverManager.EventExitFeverTime -= uiManager.FeverGaugeReset;
+
+        timeManager.EventPerOneSecond -= feverManager.GetFeverCountPerSecond;
     }
 
     void Update()
     {
-        mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
-
-        if (Input.GetMouseButton(0)) star.TargetRadiusChange(mousePos);
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             switch (gameState)
@@ -139,6 +172,15 @@ public class GameManager : MonoBehaviour
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// 스크린의 빈 공간을 터치하고 있는 동안 수행할 동작을 입력합니다.
+    /// </summary>
+    public void OnTouchDownScreen()
+    {
+        mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
+        if (gameState == GameState.Playing) EventOnTouchScreen(mousePos);
     }
 
     /// <summary>
@@ -162,11 +204,9 @@ public class GameManager : MonoBehaviour
         if(gameState == GameState.Playing) gameState = GameState.GameOver;
     }
 
-    private void OnCountDownDone()
-    {
-        gameState = GameState.Playing;
-    }
-
+    /// <summary>
+    /// Scene을 닫기 전에 호출하는 함수입니다. 오브젝트 풀링으로 생성된 모든 오브젝트의 이벤트를 초기화하고, 팝업창을 닫으며 TimeScale을 기본값으로 되돌립니다. 
+    /// </summary>
     void SceneReset()
     {
         itemManager.AllItemEventReset();

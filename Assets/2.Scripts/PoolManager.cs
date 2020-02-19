@@ -7,8 +7,12 @@ public enum ObjectPool
 {
     EnemyTP1,
     EnemyTP2,
+    EnemyTP3,
+    EnemyTP4,
     EnemyTS1,
     EnemyTS2,
+    EnemyTS3,
+    EnemyTS4,
     ItemHexagonBomb,
     ItemFixedBomb,
     ItemHeal,
@@ -17,6 +21,7 @@ public enum ObjectPool
     ParticleExplosion,
     ParticleHexagonExp,
     ParticleHealing,
+    ParticleFever,
     AudioFX
 }
 
@@ -27,6 +32,10 @@ public class PoolManager : MonoBehaviour
     [SerializeField] GameObject enemyToStar1;
     [SerializeField] GameObject enemyToPlanet2;
     [SerializeField] GameObject enemyToStar2;
+    [SerializeField] GameObject enemyToPlanet3;
+    [SerializeField] GameObject enemyToStar3;
+    [SerializeField] GameObject enemyToPlanet4;
+    [SerializeField] GameObject enemyToStar4;
     [SerializeField] GameObject itemHexagonBomb;
     [SerializeField] GameObject itemFixedBomb;
     [SerializeField] GameObject itemHeal;
@@ -35,12 +44,17 @@ public class PoolManager : MonoBehaviour
     [SerializeField] GameObject particleExplosion;
     [SerializeField] GameObject particleHexagonExp;
     [SerializeField] GameObject particleHealing;
+    [SerializeField] GameObject particleFever;
     [SerializeField] GameObject audioFX;
 
     private List<Enemy> enemyTP1List = new List<Enemy>();
     private List<Enemy> enemyTS1List = new List<Enemy>();
     private List<Enemy> enemyTP2List = new List<Enemy>();
     private List<Enemy> enemyTS2List = new List<Enemy>();
+    private List<Enemy> enemyTP3List = new List<Enemy>();
+    private List<Enemy> enemyTS3List = new List<Enemy>();
+    private List<Enemy> enemyTP4List = new List<Enemy>();
+    private List<Enemy> enemyTS4List = new List<Enemy>();
     private List<ItemBomb> itemHexagonBombList = new List<ItemBomb>();
     private List<ItemBomb> itemFixedBombList = new List<ItemBomb>();
     private List<ItemHeal> itemHealList = new List<ItemHeal>();
@@ -49,12 +63,17 @@ public class PoolManager : MonoBehaviour
     private List<Explosion> particleExplosionList = new List<Explosion>();
     private List<Explosion> particleHexagonExpList = new List<Explosion>();
     private List<ParticleSystem> particleHealingList = new List<ParticleSystem>();
+    private List<ParticleSystem> particleFeverList = new List<ParticleSystem>();
     [HideInInspector] public List<AudioSource> audioFXList = new List<AudioSource>();
 
     [SerializeField] Transform enemyTP1Group;
     [SerializeField] Transform enemyTS1Group;
     [SerializeField] Transform enemyTP2Group;
     [SerializeField] Transform enemyTS2Group;
+    [SerializeField] Transform enemyTP3Group;
+    [SerializeField] Transform enemyTS3Group;
+    [SerializeField] Transform enemyTP4Group;
+    [SerializeField] Transform enemyTS4Group;
     [SerializeField] Transform itemHexagonBombGroup;
     [SerializeField] Transform itemFixedBombGroup;
     [SerializeField] Transform itemHealGroup;
@@ -63,12 +82,17 @@ public class PoolManager : MonoBehaviour
     [SerializeField] Transform particleExplosionGroup;
     [SerializeField] Transform particleHexagonExpGroup;
     [SerializeField] Transform particleHealingGroup;
+    [SerializeField] Transform particleFeverGroup;
     [SerializeField] Transform audioFXGroup;
 
     private int enemyTP1Index = 0;
     private int enemyTS1Index = 0;
     private int enemyTP2Index = 0;
     private int enemyTS2Index = 0;
+    private int enemyTP3Index = 0;
+    private int enemyTS3Index = 0;
+    private int enemyTP4Index = 0;
+    private int enemyTS4Index = 0;
     private int itemHexagonBombIndex = 0;
     private int itemFixedBombIndex = 0;
     private int itemHealIndex = 0;
@@ -77,21 +101,27 @@ public class PoolManager : MonoBehaviour
     private int particleExplosionIndex = 0;
     private int particleHexagonExpIndex = 0;
     private int particleHealingIndex = 0;
+    private int particleFeverIndex = 0;
 
     void Awake()
     {
-        enemyTP1List = MakeObjectPool<Enemy>(enemyToPlanet1, enemyTP1Group);
+        enemyTP1List = MakeObjectPool<Enemy>(enemyToPlanet1, enemyTP1Group, 100);
         enemyTS1List = MakeObjectPool<Enemy>(enemyToStar1, enemyTS1Group);
         enemyTP2List = MakeObjectPool<Enemy>(enemyToPlanet2, enemyTP2Group, 30);
         enemyTS2List = MakeObjectPool<Enemy>(enemyToStar2, enemyTS2Group, 30);
-        itemFixedBombList = MakeObjectPool<ItemBomb>(itemFixedBomb, itemFixedBombGroup, 50);
+        enemyTP3List = MakeObjectPool<Enemy>(enemyToPlanet3, enemyTP3Group, 20);
+        enemyTS3List = MakeObjectPool<Enemy>(enemyToStar3, enemyTS3Group);
+        enemyTP4List = MakeObjectPool<Enemy>(enemyToPlanet4, enemyTP4Group, 20);
+        enemyTS4List = MakeObjectPool<Enemy>(enemyToStar4, enemyTS4Group, 30);
+        itemFixedBombList = MakeObjectPool<ItemBomb>(itemFixedBomb, itemFixedBombGroup);
         itemHexagonBombList = MakeObjectPool<ItemBomb>(itemHexagonBomb, itemHexagonBombGroup, 30);
         itemHealList = MakeObjectPool<ItemHeal>(itemHeal, itemHealGroup, 30);
         particleTP1List = MakeObjectPool<ParticleSystem>(particleTP1, particleTP1Group);
         particleTS1List = MakeObjectPool<ParticleSystem>(particleTS1, particleTS1Group);
-        particleExplosionList = MakeObjectPool<Explosion>(particleExplosion, particleExplosionGroup, 50);
+        particleExplosionList = MakeObjectPool<Explosion>(particleExplosion, particleExplosionGroup);
         particleHexagonExpList = MakeObjectPool<Explosion>(particleHexagonExp, particleHexagonExpGroup, 20);
         particleHealingList = MakeObjectPool<ParticleSystem>(particleHealing, particleHealingGroup, 30);
+        particleFeverList = MakeObjectPool<ParticleSystem>(particleFever, particleFeverGroup, 100);
         audioFXList = MakeObjectPool<AudioSource>(audioFX, audioFXGroup, 20);
     }
     /// <summary>
@@ -193,8 +223,64 @@ public class PoolManager : MonoBehaviour
                 enemyTS2Index = (enemyTS2Index + 1) % enemyTS2List.Count;
                 break;
 
+            //Enemy To Planet - Tier 3
+            case ObjectPool.EnemyTP3:
+                if (enemyTP3List[enemyTP3Index].gameObject.activeSelf)
+                {
+                    var newItem = Instantiate(enemyToPlanet3, position, rotation).GetComponent<Enemy>();
+                    _returnObject = newItem;
+                    enemyTP3List.Add(newItem);
+                    break;
+                }
+                SpawnObject(enemyTP3List, enemyTP3Index, position, rotation);
+                _returnObject = enemyTP3List[enemyTP3Index];
+                enemyTP3Index = (enemyTP3Index + 1) % enemyTP3List.Count;
+                break;
 
-        //Item
+            //Enemy To Star - Tier 3
+            case ObjectPool.EnemyTS3:
+                if (enemyTS3List[enemyTS3Index].gameObject.activeSelf)
+                {
+                    var newItem = Instantiate(enemyToStar3, position, rotation).GetComponent<Enemy>();
+                    _returnObject = newItem;
+                    enemyTS3List.Add(newItem);
+                    break;
+                }
+                SpawnObject(enemyTS3List, enemyTS3Index, position, rotation);
+                _returnObject = enemyTS3List[enemyTS3Index];
+                enemyTS3Index = (enemyTS3Index + 1) % enemyTS3List.Count;
+                break;
+
+            //Enemy To Planet - Tier 4
+            case ObjectPool.EnemyTP4:
+                if (enemyTP4List[enemyTP4Index].gameObject.activeSelf)
+                {
+                    var newItem = Instantiate(enemyToPlanet4, position, rotation).GetComponent<Enemy>();
+                    _returnObject = newItem;
+                    enemyTP4List.Add(newItem);
+                    break;
+                }
+                SpawnObject(enemyTP4List, enemyTP4Index, position, rotation);
+                _returnObject = enemyTP4List[enemyTP4Index];
+                enemyTP4Index = (enemyTP4Index + 1) % enemyTP4List.Count;
+                break;
+
+            //Enemy To Star - Tier 4
+            case ObjectPool.EnemyTS4:
+                if (enemyTS4List[enemyTS4Index].gameObject.activeSelf)
+                {
+                    var newItem = Instantiate(enemyToStar4, position, rotation).GetComponent<Enemy>();
+                    _returnObject = newItem;
+                    enemyTS4List.Add(newItem);
+                    break;
+                }
+                SpawnObject(enemyTS4List, enemyTS4Index, position, rotation);
+                _returnObject = enemyTS4List[enemyTS4Index];
+                enemyTS4Index = (enemyTS4Index + 1) % enemyTS4List.Count;
+                break;
+
+
+            //Item
             //Hexagon Bomb
             case ObjectPool.ItemHexagonBomb:
                 if (itemHexagonBombList[itemHexagonBombIndex].gameObject.activeSelf)
@@ -306,6 +392,20 @@ public class PoolManager : MonoBehaviour
                 SpawnObject(particleHealingList, particleHealingIndex, position, rotation);
                 _returnObject = particleHealingList[particleHealingIndex];
                 particleHealingIndex = (particleHealingIndex + 1) % particleHealingList.Count;
+                break;
+
+            //Fever Particle
+            case ObjectPool.ParticleFever:
+                if (particleFeverList[particleFeverIndex].gameObject.activeSelf)
+                {
+                    var newItem = Instantiate(particleFever, position, rotation).GetComponent<ParticleSystem>();
+                    _returnObject = newItem;
+                    particleFeverList.Add(newItem);
+                    break;
+                }
+                SpawnObject(particleFeverList, particleFeverIndex, position, rotation);
+                _returnObject = particleFeverList[particleFeverIndex];
+                particleFeverIndex = (particleFeverIndex + 1) % particleFeverList.Count;
                 break;
 
             default:

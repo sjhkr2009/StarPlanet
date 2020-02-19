@@ -23,6 +23,11 @@ public class UIManager : MonoBehaviour
     [BoxGroup("Button")] [SerializeField] GameObject accelIconIdle;
     [BoxGroup("Button")] [SerializeField] GameObject accelIconActive;
 
+    //피버 게이지 관련
+    [BoxGroup("Fever")] [SerializeField] ParticleSystem feverEffect;
+    [BoxGroup("Fever")] [SerializeField] Image feverFillArea;
+    [BoxGroup("Fever")] [SerializeField] Image feverEdge;
+
     //팝업창 관련 - 공통
     [BoxGroup("Pop-Up Window")] [SerializeField] GameObject allPopUpWindow;
     [BoxGroup("Pop-Up Window")] [SerializeField] PopUpWindow popUpWindow;
@@ -34,11 +39,11 @@ public class UIManager : MonoBehaviour
     [BoxGroup("Pop-Up Window")] [SerializeField] RectTransform soundTransform;
     [BoxGroup("Pop-Up Window")] [SerializeField] GameObject warningWindow;
     [BoxGroup("Pop-Up Window")] [SerializeField] WarningText warningText;
+    [BoxGroup("Pop-Up Window")] [SerializeField] Text totalScoreText;
+    [BoxGroup("Pop-Up Window")] [SerializeField] Text bestScoreText;
 
     [BoxGroup("Object")] [SerializeField] Star star;
     [BoxGroup("Object")] [SerializeField] Planet planet;
-
-    public event Action EventCountDownDone = () => { };
 
     bool isPopUpClosing = false;
     bool isWarningActive = false;
@@ -87,8 +92,6 @@ public class UIManager : MonoBehaviour
 
     private void Awake()
     {
-        StartCoroutine(CountdownToPlay());
-
         if(popUpWindow == null) popUpWindow = allPopUpWindow.GetComponent<PopUpWindow>();
         if (warningText == null) warningText = FindObjectOfType<WarningText>();
 
@@ -104,11 +107,7 @@ public class UIManager : MonoBehaviour
 
         accelIconActive.SetActive(false);
         allPopUpWindow.SetActive(false);
-    }
-
-    private void Start()
-    {
-        scoreText.text = "점수: 0";
+        FeverGaugeReset();
     }
 
     private void OnDestroy()
@@ -124,21 +123,62 @@ public class UIManager : MonoBehaviour
         warningText.EventOnTextEnable -= WarningTextSetting;
     }
 
+    private void Start()
+    {
+        scoreText.text = "점수: 0";
+    }
+
     void RadiusChange(float radius)
     {
         orbitalRadiusUI.transform.localScale = Vector3.one * radius * 2;
     }
 
-    IEnumerator CountdownToPlay()
+    void CountdownTextChange(int count)
     {
-        countdownText.text = "3";
-        yield return new WaitForSeconds(0.8f);
-        countdownText.text = "2";
-        yield return new WaitForSeconds(0.8f);
-        countdownText.text = "1";
-        yield return new WaitForSeconds(0.8f);
-        countdownText.gameObject.SetActive(false);
-        EventCountDownDone();
+        if(count == 0)
+        {
+            countdownText.text = "Start!";
+            countdownText.DOFade(1f, 0f).SetUpdate(true);
+            countdownText.transform.localScale = Vector3.one * 1.5f;
+            DOVirtual.DelayedCall(0.5f, () => { countdownText.gameObject.SetActive(false); GameManager.Instance.gameState = GameState.Playing; });
+
+            return;
+        }
+        
+        countdownText.text = count.ToString();
+        countdownText.transform.localScale = Vector3.one * 3f;
+        countdownText.DOFade(1f, 0f).SetUpdate(true);
+        countdownText.transform.DOScale(1f, 1f).SetEase(Ease.OutCirc).SetUpdate(true);
+        countdownText.DOFade(0f, 1f).SetEase(Ease.InCirc).SetUpdate(true)
+            .OnComplete(() =>
+            {
+                CountdownTextChange(count - 1);
+            });
+    }
+
+    // 피버타임 관련 효과
+    public void FeverGaugeFill(float value)
+    {
+        feverFillArea.fillAmount = value;
+        feverEdge.color = new Color(1f, 1f, 1f, value * 0.66f);
+    }
+    public void OnFeverTime()
+    {
+        feverEffect.Play();
+        float duration = GameManager.Instance.FeverManager.feverDuration;
+
+        feverFillArea.DOFillAmount(0f, duration * 0.8f).SetEase(Ease.Linear);
+        DOVirtual.DelayedCall(duration * 0.7f, () =>
+        {
+            feverEdge.DOFade(0f, 0.5f).SetLoops(-1, LoopType.Yoyo);
+        });
+    }
+    public void FeverGaugeReset()
+    {
+        feverEdge.DOKill();
+        feverFillArea.fillAmount = 0f;
+        feverEdge.color = new Color(1f, 1f, 1f, 0f);
+        feverEffect.Pause();
     }
 
     public void OnPlayerHpChanged(int value, Player player)
@@ -176,6 +216,18 @@ public class UIManager : MonoBehaviour
         star.CancelAccelerate();
     }
 
+    public void OnGameOverScorePrint(int score, bool isBestScore)
+    {
+        totalScoreText.text = score.ToString();
+
+        if (isBestScore)
+        {
+            bestScoreText.text = score.ToString();
+            //기록 갱신 표시
+        }
+    }
+
+
     //팝업창 관련 설정
     public void OnGameStateChanged(GameState gameState) //게임 상태 변화에 따른 동작 설정
     {
@@ -183,8 +235,10 @@ public class UIManager : MonoBehaviour
         {
             case GameState.Ready:
                 if (allPopUpWindow.activeSelf) allPopUpWindow.SetActive(false);
+                CountdownTextChange(3);
                 break;
             case GameState.Playing:
+                if (allPopUpWindow.activeSelf) allPopUpWindow.SetActive(false);
                 break;
             case GameState.Pause:
                 allPopUpWindow.SetActive(true);
@@ -199,6 +253,10 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 팝업창이 띄워진 상태에서 Esc 또는 스마트폰의 뒤로가기 버튼을 누를 때의 동작입니다. 현재 가장 위에 띄워져 있는 팝업창에 따라 동작을 수행합니다.
+    /// 일시정지 상태: 창을 닫고 플레이 모드로 돌아갑니다.
+    /// </summary>
     public void Escape()
     {
         if (isWarningActive)
