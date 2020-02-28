@@ -10,7 +10,10 @@ public class ScoreManager : MonoBehaviour
     public event Action<int, bool> EventOnGameOver = (n,b) => { }; //최고 점수를 갱신했다면 true, uiManager에서 게임오버 화면에 점수를 출력하는 용도.
 
     [SerializeField, ReadOnly] private int _score;
+    [SerializeField, ReadOnly] private int _bestScore;
 
+    [SerializeField] private float addScorePerSecond;
+    [SerializeField, ReadOnly] float timeScoreCount;
     [SerializeField] private int scoreTier1;
     [SerializeField] private int scoreTier2;
     [SerializeField] private int scoreTier3;
@@ -19,6 +22,8 @@ public class ScoreManager : MonoBehaviour
     private void Awake()
     {
         score = 0;
+        timeScoreCount = 0f;
+        _bestScore = bestScore;
     }
 
     public int bestScore
@@ -42,6 +47,20 @@ public class ScoreManager : MonoBehaviour
         this.score += score;
     }
 
+    public void AddScorePerSecond()
+    {
+        timeScoreCount += addScorePerSecond;
+        if(timeScoreCount >= 1.0f)
+        {
+            AddScore(Mathf.FloorToInt(timeScoreCount));
+            timeScoreCount %= 1f;
+        }
+    }
+    public void ScorePerSecondUpgrade()
+    {
+        addScorePerSecond = Mathf.Min(addScorePerSecond + 0.1f, 2.5f);
+    }
+
     int ScoreCalculator(Enemy enemy)
     {
         int score = 0;
@@ -60,16 +79,19 @@ public class ScoreManager : MonoBehaviour
                 score = scoreTier2;
                 break;
             case EnemyType.ToPlanet3:
-                score = scoreTier3;
+                score = scoreTier3 * 6;
+                break;
+            case EnemyType.TP3mini:
+                score = scoreTier3 * 2;
                 break;
             case EnemyType.ToStar3:
-                score = (int)(scoreTier3 / 4f);
+                score = scoreTier3;
                 break;
             case EnemyType.ToPlanet4:
                 score = scoreTier4;
                 break;
             case EnemyType.ToStar4:
-                score = scoreTier4 * 2;
+                score = scoreTier4;
                 break;
         }
         return score;
@@ -96,6 +118,8 @@ public class ScoreManager : MonoBehaviour
 
     private void BestScoreCheck()
     {
+        _bestScore = bestScore;
+
         if (score > bestScore)
         {
             bestScore = score;

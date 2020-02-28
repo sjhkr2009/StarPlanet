@@ -66,9 +66,11 @@ public class FeverManager : MonoBehaviour
     }
     void ExitFeverTime()
     {
+        if (isFeverTime) tween.Kill();
         EventExitFeverTime();
         isFeverTime = false;
         currentFeverCount = 0;
+        maxFeverCount += 10;
     }
 
     private void OnDestroy()

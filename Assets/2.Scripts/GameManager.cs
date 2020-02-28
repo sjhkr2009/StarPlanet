@@ -56,17 +56,19 @@ public class GameManager : MonoBehaviour
 
     [BoxGroup("Screen")] public float screenHorizontal = 9f, screenVertical = 16f;
 
-    [BoxGroup("Scripts")] [SerializeField] Star star;                   public Star Star => star;
-    [BoxGroup("Scripts")] [SerializeField] Planet planet;               public Planet Planet => planet;
-    [BoxGroup("Scripts")] [SerializeField] UIManager uiManager;         public UIManager UiManager => uiManager;
-    [BoxGroup("Scripts")] [SerializeField] EnemyManager enemyManager;   public EnemyManager EnemyManager => enemyManager;
-    [BoxGroup("Scripts")] [SerializeField] SoundManager soundManager;   public SoundManager SoundManager => soundManager;
-    [BoxGroup("Scripts")] [SerializeField] ScoreManager scoreManager;   public ScoreManager ScoreManager => scoreManager;
-    [BoxGroup("Scripts")] [SerializeField] PoolManager poolManager;     public PoolManager PoolManager => poolManager;
-    [BoxGroup("Scripts")] [SerializeField] ParticleManager particleManager; public ParticleManager ParticleManager => particleManager;
-    [BoxGroup("Scripts")] [SerializeField] ItemManager itemManager;     public ItemManager ItemManager => itemManager;
-    [BoxGroup("Scripts")] [SerializeField] FeverManager feverManager;   public FeverManager FeverManager => feverManager;
-    [BoxGroup("Scripts")] [SerializeField] TimeManager timeManager;     public TimeManager TimeManager => timeManager;
+    [BoxGroup("Scripts"), SerializeField] Star star;                        public Star Star => star;
+    [BoxGroup("Scripts"), SerializeField] Planet planet;                    public Planet Planet => planet;
+    [BoxGroup("Scripts"), SerializeField] UIManager uiManager;              public UIManager UiManager => uiManager;
+    [BoxGroup("Scripts"), SerializeField] EnemyManager enemyManager;        public EnemyManager EnemyManager => enemyManager;
+    [BoxGroup("Scripts"), SerializeField] SoundManager soundManager;        public SoundManager SoundManager => soundManager;
+    [BoxGroup("Scripts"), SerializeField] ScoreManager scoreManager;        public ScoreManager ScoreManager => scoreManager;
+    [BoxGroup("Scripts"), SerializeField] PoolManager poolManager;          public PoolManager PoolManager => poolManager;
+    [BoxGroup("Scripts"), SerializeField] ParticleManager particleManager;  public ParticleManager ParticleManager => particleManager;
+    [BoxGroup("Scripts"), SerializeField] ItemManager itemManager;          public ItemManager ItemManager => itemManager;
+    [BoxGroup("Scripts"), SerializeField] FeverManager feverManager;        public FeverManager FeverManager => feverManager;
+    [BoxGroup("Scripts"), SerializeField] TimeManager timeManager;          public TimeManager TimeManager => timeManager;
+    [BoxGroup("Scripts"), SerializeField] SpawnManager spawnManager;        public SpawnManager SpawnManager => spawnManager;
+    [BoxGroup("Scripts"), SerializeField] CameraController cameraController;public CameraController CameraController => cameraController;
 
     Vector3 mousePos;
     public event Action<Vector3> EventOnTouchScreen = n => { };
@@ -83,8 +85,10 @@ public class GameManager : MonoBehaviour
         if (particleManager == null) particleManager = GetComponent<ParticleManager>();
         if (feverManager == null) feverManager = GetComponent<FeverManager>();
         if (timeManager == null) timeManager = GetComponent<TimeManager>();
+        if (spawnManager == null) spawnManager = GetComponent<SpawnManager>();
         if (star == null) star = FindObjectOfType<Star>();
         if (planet == null) planet = FindObjectOfType<Planet>();
+        if (cameraController == null) cameraController = FindObjectOfType<CameraController>();
 
         star.EventHpChanged += OnPlayerHpChanged;
         star.EventPlayerDead += OnPlayerDead;
@@ -97,36 +101,31 @@ public class GameManager : MonoBehaviour
         EventGameStateChanged += star.OnGameStateChanged;
         EventGameStateChanged += uiManager.OnGameStateChanged;
         EventGameStateChanged += timeManager.OnGameStateChanged;
+        EventGameStateChanged += scoreManager.OnGameStateChanged;
 
         scoreManager.EventOnScoreChanged += uiManager.ScoreTextChange;
+        scoreManager.EventOnScoreChanged += enemyManager.OnSpawnControlByScore;
+        scoreManager.EventOnScoreChanged += itemManager.OnSpawnControlByScore;
         scoreManager.EventOnGameOver += uiManager.OnGameOverScorePrint;
 
         feverManager.EventOnGetFeverGauge += uiManager.FeverGaugeFill;
         feverManager.EventOnFeverTime += uiManager.OnFeverTime;
         feverManager.EventOnFeverTime += star.OnFeverTime;
+        feverManager.EventOnFeverTime += itemManager.BonusHealkitSpawnChance;
         feverManager.EventExitFeverTime += star.ExitFeverTime;
         feverManager.EventExitFeverTime += uiManager.FeverGaugeReset;
+        feverManager.EventExitFeverTime += scoreManager.ScorePerSecondUpgrade;
+        feverManager.EventExitFeverTime += enemyManager.OnExitFeverTime;
 
+        timeManager.EventOnTimeChanged += uiManager.TimeTextChange;
         timeManager.EventPerOneSecond += feverManager.GetFeverCountPerSecond;
+        timeManager.EventPerOneSecond += scoreManager.AddScorePerSecond;
+        timeManager.EventPerOneSecond += cameraController.SizeUpPerSecond;
+        timeManager.EventPerSeconds += enemyManager.OnSpawnControlByTime;
 
 
         gameState = GameState.Ready;
-        DOVirtual.DelayedCall(4f, () =>
-        {
-            if (gameState == GameState.Ready)
-            {
-                gameState = GameState.Playing;
-                Debug.Log("강제 시작");
-            }
-        });
     }
-
-    void Start()
-    {
-        if(_instance != null && _instance != this) { Destroy(gameObject);}
-    }
-
-
     private void OnDestroy()
     {
         star.EventHpChanged -= OnPlayerHpChanged;
@@ -140,19 +139,39 @@ public class GameManager : MonoBehaviour
         EventGameStateChanged -= star.OnGameStateChanged;
         EventGameStateChanged -= uiManager.OnGameStateChanged;
         EventGameStateChanged -= timeManager.OnGameStateChanged;
+        EventGameStateChanged -= scoreManager.OnGameStateChanged;
 
         scoreManager.EventOnScoreChanged -= uiManager.ScoreTextChange;
+        scoreManager.EventOnScoreChanged -= enemyManager.OnSpawnControlByScore;
+        scoreManager.EventOnScoreChanged -= itemManager.OnSpawnControlByScore;
         scoreManager.EventOnGameOver -= uiManager.OnGameOverScorePrint;
 
         feverManager.EventOnGetFeverGauge -= uiManager.FeverGaugeFill;
         feverManager.EventOnFeverTime -= uiManager.OnFeverTime;
         feverManager.EventOnFeverTime -= star.OnFeverTime;
+        feverManager.EventOnFeverTime -= itemManager.BonusHealkitSpawnChance;
         feverManager.EventExitFeverTime -= star.ExitFeverTime;
         feverManager.EventExitFeverTime -= uiManager.FeverGaugeReset;
+        feverManager.EventExitFeverTime -= scoreManager.ScorePerSecondUpgrade;
+        feverManager.EventExitFeverTime -= enemyManager.OnExitFeverTime;
 
+        timeManager.EventOnTimeChanged -= uiManager.TimeTextChange;
         timeManager.EventPerOneSecond -= feverManager.GetFeverCountPerSecond;
+        timeManager.EventPerOneSecond -= scoreManager.AddScorePerSecond;
+        timeManager.EventPerSeconds -= enemyManager.OnSpawnControlByTime;
     }
-
+    void Start()
+    {
+        if (_instance != null && _instance != this) { Destroy(gameObject); }
+        DOVirtual.DelayedCall(4.5f, () =>
+        {
+            if (gameState == GameState.Ready)
+            {
+                gameState = GameState.Playing;
+                Debug.Log("강제 시작");
+            }
+        });
+    }
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -179,7 +198,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void OnTouchDownScreen()
     {
-        mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
+        mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, cameraController.CameraYPos));
         if (gameState == GameState.Playing) EventOnTouchScreen(mousePos);
     }
 
@@ -193,15 +212,35 @@ public class GameManager : MonoBehaviour
         if (isStar) star.Hp += changeLevel;
         else planet.Hp += changeLevel;
     }
-
+    /// <summary>
+    /// 플레이어 체력이 변화할 때 호출됩니다. 체력이 0 이하가 되면 플레이어를 비활성화합니다.
+    /// 이 때 플레이어 사망 시 이벤트가 호출되며 자동으로 게임오버가 됩니다.
+    /// </summary>
+    /// <param name="hp"></param>
+    /// <param name="player"></param>
     public void OnPlayerHpChanged(int hp, Player player) 
     {
         if (hp <= 0) player.gameObject.SetActive(false);
     }
-
+    /// <summary>
+    /// Star와 Planet 중 하나가 체력이 0이 되어 파괴될 경우 호출됩니다. 게임오버 상태로 변경합니다.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="player"></param>
     private void OnPlayerDead<T>(T player) where T : Player
     {
         if(gameState == GameState.Playing) gameState = GameState.GameOver;
+    }
+
+    public float StarHpRate()
+    {
+        float hpRate = (float)star.Hp / (float)star.MaxHp;
+        return hpRate;
+    }
+    public float PlanetHpRate()
+    {
+        float hpRate = (float)planet.Hp / (float)planet.MaxHp;
+        return hpRate;
     }
 
     /// <summary>
@@ -212,7 +251,6 @@ public class GameManager : MonoBehaviour
         itemManager.AllItemEventReset();
         enemyManager.AllEnemyEventReset();
         uiManager.OffAllWindow();
-        Time.timeScale = 1f;
     }
 
     public void ReStartScene()
