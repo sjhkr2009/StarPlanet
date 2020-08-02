@@ -105,7 +105,7 @@ ParticleSystem:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  moveWithTransform: 0
+  moveWithTransform: 1
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 1
   randomSeed: 0
@@ -14202,7 +14202,7 @@ MonoBehaviour:
   enemyTarget: 0
   targetType: Planet
   avoidType: Star
-  damage: 8
+  damage: 3
   healing: 0
   moveSpeed: 1
   radiusReduceSpeed: 0
